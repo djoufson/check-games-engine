@@ -6,40 +6,77 @@ import (
 	"github.com/djoufson/check-games-engine/state"
 )
 
-func TestStateCreation(t *testing.T) {
+// TestShouldCreateStateWithCorrectPlayerCount_WhenUsingDefaultOptions tests player count with default options
+func TestShouldCreateStateWithCorrectPlayerCount_WhenUsingDefaultOptions(t *testing.T) {
+	// Arrange
 	playerIDs := []string{"player1", "player2", "player3"}
 
-	// Test with default options
+	// Act
 	gameState, err := state.New(playerIDs, nil)
+
+	// Assert
 	if err != nil {
 		t.Fatalf("Failed to create new game: %v", err)
 	}
 
-	// Check basic game state
 	if len(gameState.ActivePlayers) != 3 {
 		t.Errorf("Expected 3 players, got %d", len(gameState.ActivePlayers))
+	}
+}
+
+// TestShouldSetFirstPlayerAsActive_WhenCreatingNewState tests that the first player is active
+func TestShouldSetFirstPlayerAsActive_WhenCreatingNewState(t *testing.T) {
+	// Arrange
+	playerIDs := []string{"player1", "player2", "player3"}
+
+	// Act
+	gameState, err := state.New(playerIDs, nil)
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to create new game: %v", err)
 	}
 
 	if gameState.CurrentPlayerID() != "player1" {
 		t.Errorf("Expected current player to be player1, got %s", gameState.CurrentPlayerID())
 	}
+}
+
+// TestShouldNotBeGameOver_WhenCreatingNewState tests that a new game is not over
+func TestShouldNotBeGameOver_WhenCreatingNewState(t *testing.T) {
+	// Arrange
+	playerIDs := []string{"player1", "player2", "player3"}
+
+	// Act
+	gameState, err := state.New(playerIDs, nil)
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to create new game: %v", err)
+	}
 
 	if gameState.IsGameOver() {
 		t.Error("New game should not be over")
 	}
+}
 
-	// Test with custom options
+// TestShouldDistributeCorrectNumberOfCards_WhenUsingCustomOptions tests card distribution with custom options
+func TestShouldDistributeCorrectNumberOfCards_WhenUsingCustomOptions(t *testing.T) {
+	// Arrange
+	playerIDs := []string{"player1", "player2", "player3"}
 	opts := &state.GameOptions{
 		InitialCards: 5,
 		RandomSeed:   12345,
 	}
 
-	gameState, err = state.New(playerIDs, opts)
+	// Act
+	gameState, err := state.New(playerIDs, opts)
+
+	// Assert
 	if err != nil {
 		t.Fatalf("Failed to create new game with options: %v", err)
 	}
 
-	// Check that player hands have expected size
 	player1 := gameState.FindPlayerByID("player1")
 	if player1 == nil {
 		t.Fatalf("Failed to find player1")
@@ -48,9 +85,17 @@ func TestStateCreation(t *testing.T) {
 	if len(player1.Hand) != 5 {
 		t.Errorf("Expected hand size to be 5, got %d", len(player1.Hand))
 	}
+}
 
-	// Test with invalid player count
-	_, err = state.New([]string{"player1"}, nil)
+// TestShouldReturnError_WhenCreatingStateWithTooFewPlayers tests too few players error
+func TestShouldReturnError_WhenCreatingStateWithTooFewPlayers(t *testing.T) {
+	// Arrange
+	playerIDs := []string{"player1"}
+
+	// Act
+	_, err := state.New(playerIDs, nil)
+
+	// Assert
 	if err == nil {
 		t.Error("Expected error with only one player")
 	}

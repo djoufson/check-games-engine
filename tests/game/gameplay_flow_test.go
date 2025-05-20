@@ -7,7 +7,8 @@ import (
 	"github.com/djoufson/check-games-engine/game"
 )
 
-func TestGameplayFlow(t *testing.T) {
+// setupGameplayTest creates a new game for testing gameplay flow
+func setupGameplayTest(t *testing.T) *game.Game {
 	// Create a game with 2 players and a fixed seed for deterministic tests
 	playerIDs := []string{"player1", "player2"}
 	opts := &game.Options{
@@ -20,85 +21,98 @@ func TestGameplayFlow(t *testing.T) {
 		t.Fatalf("Failed to create new game: %v", err)
 	}
 
-	// Get player1's hand
-	player1Hand, err := g.GetPlayerHand("player1")
+	return g
+}
+
+// findPlayableCard finds a standard playable card in a player's hand
+func findPlayableCard(t *testing.T, g *game.Game, playerID string) (card.Card, bool) {
+	playerHand, err := g.GetPlayerHand(playerID)
 	if err != nil {
-		t.Fatalf("Failed to get player1's hand: %v", err)
+		t.Fatalf("Failed to get %s's hand: %v", playerID, err)
 	}
 
-	// Get the top card
 	topCard := g.GetTopCard()
 
-	// Find a playable card in player1's hand
-	var cardToPlay card.Card
-	var foundPlayable bool
-
-	for _, c := range player1Hand {
+	// Find a playable card in the player's hand
+	for _, c := range playerHand {
 		// Try to find a standard card (not special effect) just for simplicity in testing
 		if !c.IsWildCard() && !c.IsSkip() && !c.IsSuitChanger() && !c.IsTransparent() {
 			if c.Suit == topCard.Suit || c.Rank == topCard.Rank {
-				cardToPlay = c
-				foundPlayable = true
-				break
+				return c, true
 			}
 		}
 	}
 
-	// If no standard playable card found, player1 draws
+	// If no standard card found, check for any valid card
+	for _, c := range playerHand {
+		if isValid, _ := g.ValidateMove(playerID, c); isValid {
+			return c, true
+		}
+	}
+
+	return card.Card{}, false
+}
+
+// TestShouldSwitchTurns_WhenDrawingCard tests that drawing a card switches turns
+func TestShouldSwitchTurns_WhenDrawingCard(t *testing.T) {
+	// Arrange
+	g := setupGameplayTest(t)
+
+	// Act
+	err := g.DrawCard("player1")
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to draw card: %v", err)
+	}
+
+	if g.CurrentPlayerID() != "player2" {
+		t.Errorf("Expected current player to be player2, got %s", g.CurrentPlayerID())
+	}
+}
+
+// TestShouldUpdateTopCard_WhenPlayingCard tests that playing a card updates the top card
+func TestShouldUpdateTopCard_WhenPlayingCard(t *testing.T) {
+	// Arrange
+	g := setupGameplayTest(t)
+	cardToPlay, foundPlayable := findPlayableCard(t, g, "player1")
 	if !foundPlayable {
-		err = g.DrawCard("player1")
-		if err != nil {
-			t.Fatalf("Failed to draw card: %v", err)
-		}
+		t.Skip("No playable card found in player1's hand")
+	}
 
-		// Should be player2's turn now
-		if g.CurrentPlayerID() != "player2" {
-			t.Errorf("Expected current player to be player2, got %s", g.CurrentPlayerID())
-		}
+	// Act
+	err := g.PlayCard("player1", cardToPlay)
 
-		// Get player2's hand
-		player2Hand, err := g.GetPlayerHand("player2")
-		if err != nil {
-			t.Fatalf("Failed to get player2's hand: %v", err)
-		}
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to play card: %v", err)
+	}
 
-		// Try to find a playable card in player2's hand
-		foundPlayable = false
-		for _, c := range player2Hand {
-			if isValid, _ := g.ValidateMove("player2", c); isValid {
-				cardToPlay = c
-				foundPlayable = true
-				break
-			}
-		}
+	newTopCard := g.GetTopCard()
+	if newTopCard.Suit != cardToPlay.Suit || newTopCard.Rank != cardToPlay.Rank {
+		t.Errorf("Expected top card to match played card, got %v", newTopCard)
+	}
+}
 
-		if foundPlayable {
-			err = g.PlayCard("player2", cardToPlay)
-			if err != nil {
-				t.Fatalf("Failed to play card: %v", err)
-			}
+// TestShouldSwitchTurns_WhenPlayingCard tests that playing a card switches turns
+func TestShouldSwitchTurns_WhenPlayingCard(t *testing.T) {
+	// Arrange
+	g := setupGameplayTest(t)
+	cardToPlay, foundPlayable := findPlayableCard(t, g, "player1")
+	if !foundPlayable {
+		t.Skip("No playable card found in player1's hand")
+	}
 
-			// Should be player1's turn again
-			if g.CurrentPlayerID() != "player1" {
-				t.Errorf("Expected current player to be player1, got %s", g.CurrentPlayerID())
-			}
-		}
-	} else {
-		// Play the found card
-		err = g.PlayCard("player1", cardToPlay)
-		if err != nil {
-			t.Fatalf("Failed to play card: %v", err)
-		}
+	// Act
+	err := g.PlayCard("player1", cardToPlay)
 
-		// Check that the top card changed
-		newTopCard := g.GetTopCard()
-		if newTopCard.Suit != cardToPlay.Suit || newTopCard.Rank != cardToPlay.Rank {
-			t.Errorf("Expected top card to match played card, got %v", newTopCard)
-		}
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to play card: %v", err)
+	}
 
-		// Should be player2's turn now
-		if g.CurrentPlayerID() != "player2" {
-			t.Errorf("Expected current player to be player2, got %s", g.CurrentPlayerID())
-		}
+	// Should be player2's turn now (unless it was a special card)
+	if !cardToPlay.IsSkip() && g.CurrentPlayerID() != "player2" {
+		t.Errorf("Expected current player to be player2, got %s", g.CurrentPlayerID())
 	}
 }

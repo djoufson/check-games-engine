@@ -7,16 +7,23 @@ import (
 	"github.com/djoufson/check-games-engine/deck"
 )
 
-// TestDeckCreation tests creating a new deck and its initial state
-func TestDeckCreation(t *testing.T) {
+// TestShouldContain54Cards_WhenCreatingNewDeck tests that a new deck has the correct card count
+func TestShouldContain54Cards_WhenCreatingNewDeck(t *testing.T) {
+	// Arrange & Act
 	d := deck.New()
 
-	// A standard deck should have 54 cards (52 normal + 2 jokers)
+	// Assert
 	if d.Count() != 54 {
 		t.Errorf("Expected deck to have 54 cards, got %d", d.Count())
 	}
+}
 
-	// Check that there are 13 cards of each suit
+// TestShouldContainCorrectSuitDistribution_WhenCreatingNewDeck tests suit distribution in a new deck
+func TestShouldContainCorrectSuitDistribution_WhenCreatingNewDeck(t *testing.T) {
+	// Arrange & Act
+	d := deck.New()
+
+	// Assert - Count cards by suit
 	suitCounts := make(map[card.Suit]int)
 	for _, c := range d.Cards {
 		suitCounts[c.Suit]++
@@ -37,8 +44,14 @@ func TestDeckCreation(t *testing.T) {
 	if suitCounts[card.Joker] != 2 {
 		t.Errorf("Expected 2 jokers, got %d", suitCounts[card.Joker])
 	}
+}
 
-	// Check jokers have appropriate colors
+// TestShouldContainBothColoredJokers_WhenCreatingNewDeck tests that both red and black jokers are present
+func TestShouldContainBothColoredJokers_WhenCreatingNewDeck(t *testing.T) {
+	// Arrange & Act
+	d := deck.New()
+
+	// Assert - Check for both joker colors
 	jokerCount := 0
 	redJokerFound := false
 	blackJokerFound := false

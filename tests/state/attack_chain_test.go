@@ -9,7 +9,8 @@ import (
 	"github.com/djoufson/check-games-engine/state"
 )
 
-func TestAttackChain(t *testing.T) {
+// setupAttackChainTest creates a game state for testing attack chains
+func setupAttackChainTest() (*state.State, *player.Player, *player.Player) {
 	// Create players with specific cards
 	player1 := player.New("player1")
 	player1.AddCardsToHand([]card.Card{
@@ -40,13 +41,22 @@ func TestAttackChain(t *testing.T) {
 		LastActiveSuit:     card.Hearts,
 	}
 
-	// Play a wild card to start an attack chain
+	return gameState, player1, player2
+}
+
+// TestShouldStartAttackChain_WhenPlayingWildCard tests starting an attack chain
+func TestShouldStartAttackChain_WhenPlayingWildCard(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupAttackChainTest()
+
+	// Act
 	err := gameState.PlayCard("player1", card.NewCard(card.Hearts, card.Seven))
+
+	// Assert
 	if err != nil {
 		t.Fatalf("Failed to play Seven: %v", err)
 	}
 
-	// Check attack chain started
 	if !gameState.InAttackChain {
 		t.Error("Expected to be in attack chain")
 	}
@@ -54,54 +64,100 @@ func TestAttackChain(t *testing.T) {
 	if gameState.AttackAmount != 2 {
 		t.Errorf("Expected attack amount to be 2, got %d", gameState.AttackAmount)
 	}
+}
 
-	// Check that it's player2's turn now
+// TestShouldSwitchTurns_WhenPlayingAttackCard tests turn switching after playing attack card
+func TestShouldSwitchTurns_WhenPlayingAttackCard(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupAttackChainTest()
+
+	// Act
+	err := gameState.PlayCard("player1", card.NewCard(card.Hearts, card.Seven))
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to play Seven: %v", err)
+	}
+
 	if gameState.CurrentPlayerID() != "player2" {
 		t.Errorf("Expected current player to be player2, got %s", gameState.CurrentPlayerID())
 	}
+}
 
-	// Player2 responds with another wild card
-	err = gameState.PlayCard("player2", card.NewCard(card.Spades, card.Seven))
+// TestShouldIncreaseAttackAmount_WhenRespondingWithWildCard tests attack amount increases
+func TestShouldIncreaseAttackAmount_WhenRespondingWithWildCard(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupAttackChainTest()
+	gameState.PlayCard("player1", card.NewCard(card.Hearts, card.Seven))
+
+	// Act
+	err := gameState.PlayCard("player2", card.NewCard(card.Spades, card.Seven))
+
+	// Assert
 	if err != nil {
 		t.Fatalf("Failed to play Seven to continue attack chain: %v", err)
 	}
 
-	// Check attack amount increased
 	if gameState.AttackAmount != 4 {
 		t.Errorf("Expected attack amount to be 4, got %d", gameState.AttackAmount)
 	}
+}
 
-	// Check that it's player1's turn now
-	if gameState.CurrentPlayerID() != "player1" {
-		t.Errorf("Expected current player to be player1, got %s", gameState.CurrentPlayerID())
-	}
+// TestShouldIncreaseAttackAmount_WhenPlayingJokerInAttackChain tests joker increases attack
+func TestShouldIncreaseAttackAmount_WhenPlayingJokerInAttackChain(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupAttackChainTest()
+	gameState.PlayCard("player1", card.NewCard(card.Hearts, card.Seven))
+	gameState.PlayCard("player2", card.NewCard(card.Spades, card.Seven))
 
-	// Player1 plays Joker to continue attack chain
-	err = gameState.PlayCard("player1", card.NewRedJoker())
+	// Act
+	err := gameState.PlayCard("player1", card.NewRedJoker())
+
+	// Assert
 	if err != nil {
 		t.Fatalf("Failed to play Joker: %v", err)
 	}
 
-	// Check attack amount increased
 	if gameState.AttackAmount != 8 {
 		t.Errorf("Expected attack amount to be 8, got %d", gameState.AttackAmount)
 	}
+}
 
-	// Get initial hand size before player2 draws
+// TestShouldDrawPenaltyCards_WhenCannotRespondToAttack tests drawing penalty cards
+func TestShouldDrawPenaltyCards_WhenCannotRespondToAttack(t *testing.T) {
+	// Arrange
+	gameState, _, player2 := setupAttackChainTest()
+	gameState.PlayCard("player1", card.NewCard(card.Hearts, card.Seven))
+	gameState.PlayCard("player2", card.NewCard(card.Spades, card.Seven))
+	gameState.PlayCard("player1", card.NewRedJoker())
+
 	initialHandSize := len(player2.Hand)
 
-	// Player2 has no more wild cards, so must draw
-	err = gameState.DrawCard("player2")
+	// Act
+	err := gameState.DrawCard("player2")
+
+	// Assert
 	if err != nil {
 		t.Fatalf("Failed to draw cards: %v", err)
 	}
 
-	// Check player2 drew 8 cards
 	if len(player2.Hand) != initialHandSize+8 {
 		t.Errorf("Expected hand size to increase by 8, got %d", len(player2.Hand))
 	}
+}
 
-	// Check attack chain ended
+// TestShouldEndAttackChain_WhenDrawingPenaltyCards tests that attack chain ends after drawing
+func TestShouldEndAttackChain_WhenDrawingPenaltyCards(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupAttackChainTest()
+	gameState.PlayCard("player1", card.NewCard(card.Hearts, card.Seven))
+	gameState.PlayCard("player2", card.NewCard(card.Spades, card.Seven))
+	gameState.PlayCard("player1", card.NewRedJoker())
+
+	// Act
+	gameState.DrawCard("player2")
+
+	// Assert
 	if gameState.InAttackChain {
 		t.Error("Expected attack chain to end")
 	}

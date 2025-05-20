@@ -6,90 +6,113 @@ import (
 	"github.com/djoufson/check-games-engine/card"
 )
 
-// TestCardProperties tests the special properties of different cards
-func TestCardProperties(t *testing.T) {
-	tests := []struct {
-		name          string
-		card          card.Card
-		isJoker       bool
-		isWildCard    bool
-		isSkip        bool
-		isSuitChanger bool
-		isTransparent bool
-		drawPenalty   int
-	}{
-		{
-			name:          "Ace of Spades",
-			card:          card.NewCard(card.Spades, card.Ace),
-			isJoker:       false,
-			isWildCard:    false,
-			isSkip:        true,
-			isSuitChanger: false,
-			isTransparent: false,
-			drawPenalty:   0,
-		},
-		{
-			name:          "Seven of Hearts",
-			card:          card.NewCard(card.Hearts, card.Seven),
-			isJoker:       false,
-			isWildCard:    true,
-			isSkip:        false,
-			isSuitChanger: false,
-			isTransparent: false,
-			drawPenalty:   2,
-		},
-		{
-			name:          "Jack of Diamonds",
-			card:          card.NewCard(card.Diamonds, card.Jack),
-			isJoker:       false,
-			isWildCard:    false,
-			isSkip:        false,
-			isSuitChanger: true,
-			isTransparent: false,
-			drawPenalty:   0,
-		},
-		{
-			name:          "Two of Clubs",
-			card:          card.NewCard(card.Clubs, card.Two),
-			isJoker:       false,
-			isWildCard:    false,
-			isSkip:        false,
-			isSuitChanger: false,
-			isTransparent: true,
-			drawPenalty:   0,
-		},
-		{
-			name:          "Red Joker",
-			card:          card.NewRedJoker(),
-			isJoker:       true,
-			isWildCard:    true,
-			isSkip:        false,
-			isSuitChanger: false,
-			isTransparent: false,
-			drawPenalty:   4,
-		},
+// TestShouldIdentifySkipCards_WhenCheckingCardProperties tests if Ace cards are properly identified as skip cards
+func TestShouldIdentifySkipCards_WhenCheckingCardProperties(t *testing.T) {
+	// Arrange
+	aceCard := card.NewCard(card.Spades, card.Ace)
+	normalCard := card.NewCard(card.Hearts, card.Three)
+
+	// Act & Assert
+	if !aceCard.IsSkip() {
+		t.Errorf("Expected Ace to be a skip card")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.card.IsJoker() != tt.isJoker {
-				t.Errorf("IsJoker() = %v, want %v", tt.card.IsJoker(), tt.isJoker)
-			}
-			if tt.card.IsWildCard() != tt.isWildCard {
-				t.Errorf("IsWildCard() = %v, want %v", tt.card.IsWildCard(), tt.isWildCard)
-			}
-			if tt.card.IsSkip() != tt.isSkip {
-				t.Errorf("IsSkip() = %v, want %v", tt.card.IsSkip(), tt.isSkip)
-			}
-			if tt.card.IsSuitChanger() != tt.isSuitChanger {
-				t.Errorf("IsSuitChanger() = %v, want %v", tt.card.IsSuitChanger(), tt.isSuitChanger)
-			}
-			if tt.card.IsTransparent() != tt.isTransparent {
-				t.Errorf("IsTransparent() = %v, want %v", tt.card.IsTransparent(), tt.isTransparent)
-			}
-			if tt.card.GetDrawPenalty() != tt.drawPenalty {
-				t.Errorf("GetDrawPenalty() = %v, want %v", tt.card.GetDrawPenalty(), tt.drawPenalty)
-			}
-		})
+	if normalCard.IsSkip() {
+		t.Errorf("Expected Three not to be a skip card")
+	}
+}
+
+// TestShouldIdentifyWildCards_WhenCheckingCardProperties tests if Seven and Joker cards are properly identified as wild cards
+func TestShouldIdentifyWildCards_WhenCheckingCardProperties(t *testing.T) {
+	// Arrange
+	sevenCard := card.NewCard(card.Hearts, card.Seven)
+	jokerCard := card.NewRedJoker()
+	normalCard := card.NewCard(card.Clubs, card.Five)
+
+	// Act & Assert
+	if !sevenCard.IsWildCard() {
+		t.Errorf("Expected Seven to be a wild card")
+	}
+
+	if !jokerCard.IsWildCard() {
+		t.Errorf("Expected Joker to be a wild card")
+	}
+
+	if normalCard.IsWildCard() {
+		t.Errorf("Expected Five not to be a wild card")
+	}
+}
+
+// TestShouldIdentifySuitChangers_WhenCheckingCardProperties tests if Jack cards are properly identified as suit changers
+func TestShouldIdentifySuitChangers_WhenCheckingCardProperties(t *testing.T) {
+	// Arrange
+	jackCard := card.NewCard(card.Diamonds, card.Jack)
+	normalCard := card.NewCard(card.Clubs, card.Nine)
+
+	// Act & Assert
+	if !jackCard.IsSuitChanger() {
+		t.Errorf("Expected Jack to be a suit changer")
+	}
+
+	if normalCard.IsSuitChanger() {
+		t.Errorf("Expected Nine not to be a suit changer")
+	}
+}
+
+// TestShouldIdentifyTransparentCards_WhenCheckingCardProperties tests if Two cards are properly identified as transparent
+func TestShouldIdentifyTransparentCards_WhenCheckingCardProperties(t *testing.T) {
+	// Arrange
+	twoCard := card.NewCard(card.Clubs, card.Two)
+	normalCard := card.NewCard(card.Diamonds, card.Eight)
+
+	// Act & Assert
+	if !twoCard.IsTransparent() {
+		t.Errorf("Expected Two to be a transparent card")
+	}
+
+	if normalCard.IsTransparent() {
+		t.Errorf("Expected Eight not to be a transparent card")
+	}
+}
+
+// TestShouldIdentifyJokers_WhenCheckingCardProperties tests if Joker cards are properly identified
+func TestShouldIdentifyJokers_WhenCheckingCardProperties(t *testing.T) {
+	// Arrange
+	redJoker := card.NewRedJoker()
+	blackJoker := card.NewBlackJoker()
+	normalCard := card.NewCard(card.Spades, card.King)
+
+	// Act & Assert
+	if !redJoker.IsJoker() {
+		t.Errorf("Expected Red Joker to be identified as a joker")
+	}
+
+	if !blackJoker.IsJoker() {
+		t.Errorf("Expected Black Joker to be identified as a joker")
+	}
+
+	if normalCard.IsJoker() {
+		t.Errorf("Expected King not to be identified as a joker")
+	}
+}
+
+// TestShouldCalculateCorrectDrawPenalty_WhenCheckingWildCards tests the draw penalty values
+func TestShouldCalculateCorrectDrawPenalty_WhenCheckingWildCards(t *testing.T) {
+	// Arrange
+	sevenCard := card.NewCard(card.Hearts, card.Seven)
+	jokerCard := card.NewRedJoker()
+	normalCard := card.NewCard(card.Clubs, card.Six)
+
+	// Act & Assert
+	if sevenCard.GetDrawPenalty() != 2 {
+		t.Errorf("Expected Seven to have draw penalty of 2, got %d", sevenCard.GetDrawPenalty())
+	}
+
+	if jokerCard.GetDrawPenalty() != 4 {
+		t.Errorf("Expected Joker to have draw penalty of 4, got %d", jokerCard.GetDrawPenalty())
+	}
+
+	if normalCard.GetDrawPenalty() != 0 {
+		t.Errorf("Expected normal card to have draw penalty of 0, got %d", normalCard.GetDrawPenalty())
 	}
 }

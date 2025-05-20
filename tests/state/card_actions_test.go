@@ -9,8 +9,8 @@ import (
 	"github.com/djoufson/check-games-engine/state"
 )
 
-// TestCardPlay tests the ability to play cards and have them correctly affect the game state
-func TestCardPlay(t *testing.T) {
+// setupCardPlayTest creates a test scenario for playing cards
+func setupCardPlayTest() (*state.State, *player.Player, *player.Player) {
 	// Create players with specific cards
 	player1 := player.New("player1")
 	player1.AddCardsToHand([]card.Card{
@@ -38,31 +38,11 @@ func TestCardPlay(t *testing.T) {
 		LastActiveSuit:     card.Spades,
 	}
 
-	// Play a card that matches suit with the top card
-	err := gameState.PlayCard("player1", card.NewCard(card.Spades, card.Ace))
-	if err != nil {
-		t.Fatalf("Failed to play matching card: %v", err)
-	}
-
-	// Check that the top card changed
-	if gameState.TopCard.Suit != card.Spades || gameState.TopCard.Rank != card.Ace {
-		t.Errorf("Expected top card to be Ace of Spades, got %v", gameState.TopCard)
-	}
-
-	// Check that it's player2's turn now (Ace skips, but with 2 players it goes back to player1)
-	// But since Ace skips the next player, and there are only 2 players, it should be player1's turn again
-	if gameState.CurrentPlayerID() != "player1" {
-		t.Errorf("Expected current player to be player1 (after Ace skip), got %s", gameState.CurrentPlayerID())
-	}
-
-	// Check that player1's hand no longer contains the Ace
-	if player1.HasCard(card.NewCard(card.Spades, card.Ace)) {
-		t.Error("Expected player1's hand to no longer contain Ace of Spades")
-	}
+	return gameState, player1, player2
 }
 
-// TestCardDrawing tests drawing cards from the deck into a player's hand
-func TestCardDrawing(t *testing.T) {
+// setupCardDrawingTest creates a test scenario for drawing cards
+func setupCardDrawingTest() (*state.State, *player.Player, *player.Player) {
 	// Set up a game state for testing DrawCard
 	player1 := player.New("player1")
 	player2 := player.New("player2")
@@ -86,21 +66,96 @@ func TestCardDrawing(t *testing.T) {
 		LastActiveSuit:     topCard.Suit,
 	}
 
-	// Get initial hand size
+	return gameState, player1, player2
+}
+
+// TestShouldChangeTopCard_WhenPlayingCard tests that the top card changes after playing
+func TestShouldChangeTopCard_WhenPlayingCard(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupCardPlayTest()
+
+	// Act
+	err := gameState.PlayCard("player1", card.NewCard(card.Spades, card.Ace))
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to play matching card: %v", err)
+	}
+
+	if gameState.TopCard.Suit != card.Spades || gameState.TopCard.Rank != card.Ace {
+		t.Errorf("Expected top card to be Ace of Spades, got %v", gameState.TopCard)
+	}
+}
+
+// TestShouldStayWithSamePlayer_WhenPlayingSkipCardWithTwoPlayers tests skip card with two players
+func TestShouldStayWithSamePlayer_WhenPlayingSkipCardWithTwoPlayers(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupCardPlayTest()
+
+	// Act
+	err := gameState.PlayCard("player1", card.NewCard(card.Spades, card.Ace))
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to play matching card: %v", err)
+	}
+
+	// With 2 players, if player1 plays a skip card, it should still be player1's turn
+	if gameState.CurrentPlayerID() != "player1" {
+		t.Errorf("Expected current player to be player1 (after Ace skip), got %s", gameState.CurrentPlayerID())
+	}
+}
+
+// TestShouldRemoveCardFromHand_WhenPlayingCard tests that the card is removed from hand
+func TestShouldRemoveCardFromHand_WhenPlayingCard(t *testing.T) {
+	// Arrange
+	gameState, player1, _ := setupCardPlayTest()
+
+	// Act
+	err := gameState.PlayCard("player1", card.NewCard(card.Spades, card.Ace))
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to play matching card: %v", err)
+	}
+
+	if player1.HasCard(card.NewCard(card.Spades, card.Ace)) {
+		t.Error("Expected player1's hand to no longer contain Ace of Spades")
+	}
+}
+
+// TestShouldIncreaseHandSize_WhenDrawingCard tests that drawing increases hand size
+func TestShouldIncreaseHandSize_WhenDrawingCard(t *testing.T) {
+	// Arrange
+	gameState, player1, _ := setupCardDrawingTest()
 	initialHandSize := len(player1.Hand)
 
-	// Draw a card
+	// Act
 	err := gameState.DrawCard("player1")
+
+	// Assert
 	if err != nil {
 		t.Fatalf("Failed to draw card: %v", err)
 	}
 
-	// Check that player1's hand has one more card
 	if len(player1.Hand) != initialHandSize+1 {
 		t.Errorf("Expected hand size to increase by 1, got %d", len(player1.Hand))
 	}
+}
 
-	// Check that it's player2's turn now
+// TestShouldChangeActivePlayer_WhenDrawingCard tests that drawing changes the active player
+func TestShouldChangeActivePlayer_WhenDrawingCard(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupCardDrawingTest()
+
+	// Act
+	err := gameState.DrawCard("player1")
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Failed to draw card: %v", err)
+	}
+
 	if gameState.CurrentPlayerID() != "player2" {
 		t.Errorf("Expected current player to be player2, got %s", gameState.CurrentPlayerID())
 	}

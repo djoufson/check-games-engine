@@ -8,7 +8,8 @@ import (
 	"github.com/djoufson/check-games-engine/state"
 )
 
-func TestGameStatus(t *testing.T) {
+// setupGameOverTest creates a game state scenario where the game is over
+func setupGameOverTest() (*state.State, *player.Player, *player.Player) {
 	// Create players
 	player1 := player.New("player1")
 	player2 := player.New("player2")
@@ -31,19 +32,43 @@ func TestGameStatus(t *testing.T) {
 		LastActiveSuit:     card.Hearts,
 	}
 
-	// Check game over
+	return gameState, player1, player2
+}
+
+// TestShouldReportGameOver_WhenPlayerHasNoCards tests game over detection
+func TestShouldReportGameOver_WhenPlayerHasNoCards(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupGameOverTest()
+
+	// Act & Assert
 	if !gameState.IsGameOver() {
 		t.Error("Expected game to be over")
 	}
+}
 
-	// Check winner
+// TestShouldIdentifyWinner_WhenPlayerHasNoCards tests winner detection
+func TestShouldIdentifyWinner_WhenPlayerHasNoCards(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupGameOverTest()
+
+	// Act
 	winners := gameState.GetWinner()
+
+	// Assert
 	if len(winners) != 1 || winners[0] != "player1" {
 		t.Errorf("Expected player1 to be winner, got %v", winners)
 	}
+}
 
-	// Check loser
+// TestShouldIdentifyLoser_WhenGameIsOver tests loser detection
+func TestShouldIdentifyLoser_WhenGameIsOver(t *testing.T) {
+	// Arrange
+	gameState, _, _ := setupGameOverTest()
+
+	// Act
 	loser := gameState.GetLoser()
+
+	// Assert
 	if loser != "player2" {
 		t.Errorf("Expected player2 to be loser, got %s", loser)
 	}

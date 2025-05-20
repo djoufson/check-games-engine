@@ -6,38 +6,49 @@ import (
 	"github.com/djoufson/check-games-engine/deck"
 )
 
-// TestDrawSingleCard tests drawing a single card from the deck
-func TestDrawSingleCard(t *testing.T) {
+// TestShouldRemoveOneCard_WhenDrawingSingleCard tests that drawing reduces deck size by one
+func TestShouldRemoveOneCard_WhenDrawingSingleCard(t *testing.T) {
+	// Arrange
 	d := deck.New()
 	initialCount := d.Count()
 
-	// Draw a card
+	// Act
 	_, ok := d.Draw()
+
+	// Assert
 	if !ok {
 		t.Error("Failed to draw a card from a non-empty deck")
 	}
 
-	// Deck should have one less card
 	if d.Count() != initialCount-1 {
 		t.Errorf("Expected deck to have %d cards after drawing, got %d", initialCount-1, d.Count())
 	}
+}
 
-	// Drawing from an empty deck
+// TestShouldReturnFailure_WhenDrawingFromEmptyDeck tests that drawing from empty deck fails
+func TestShouldReturnFailure_WhenDrawingFromEmptyDeck(t *testing.T) {
+	// Arrange
 	emptyDeck := deck.New()
 	emptyDeck.Cards = nil
-	_, ok = emptyDeck.Draw()
+
+	// Act
+	_, ok := emptyDeck.Draw()
+
+	// Assert
 	if ok {
 		t.Error("Expected drawing from empty deck to return false")
 	}
 }
 
-// TestDrawMultipleCards tests drawing multiple cards from the deck
-func TestDrawMultipleCards(t *testing.T) {
+// TestShouldReturnRequestedNumberOfCards_WhenDrawingMultipleCards tests drawing multiple cards returns correct count
+func TestShouldReturnRequestedNumberOfCards_WhenDrawingMultipleCards(t *testing.T) {
+	// Arrange
 	d := deck.New()
-	initialCount := d.Count()
 
-	// Draw 5 cards
+	// Act
 	cards, ok := d.DrawN(5)
+
+	// Assert
 	if !ok {
 		t.Error("Failed to draw 5 cards from a full deck")
 	}
@@ -45,14 +56,38 @@ func TestDrawMultipleCards(t *testing.T) {
 	if len(cards) != 5 {
 		t.Errorf("Expected to draw 5 cards, got %d", len(cards))
 	}
+}
 
-	// Deck should have 5 fewer cards
-	if d.Count() != initialCount-5 {
-		t.Errorf("Expected deck to have %d cards after drawing 5, got %d", initialCount-5, d.Count())
+// TestShouldReduceDeckSize_WhenDrawingMultipleCards tests that drawing multiple cards reduces deck size accordingly
+func TestShouldReduceDeckSize_WhenDrawingMultipleCards(t *testing.T) {
+	// Arrange
+	d := deck.New()
+	initialCount := d.Count()
+	drawCount := 5
+
+	// Act
+	_, ok := d.DrawN(drawCount)
+
+	// Assert
+	if !ok {
+		t.Error("Failed to draw cards from a full deck")
 	}
 
-	// Try to draw more cards than available
-	_, ok = d.DrawN(100)
+	if d.Count() != initialCount-drawCount {
+		t.Errorf("Expected deck to have %d cards after drawing %d, got %d",
+			initialCount-drawCount, drawCount, d.Count())
+	}
+}
+
+// TestShouldReturnFailure_WhenDrawingMoreCardsThanAvailable tests over-drawing from deck
+func TestShouldReturnFailure_WhenDrawingMoreCardsThanAvailable(t *testing.T) {
+	// Arrange
+	d := deck.New()
+
+	// Act
+	_, ok := d.DrawN(100) // Try to draw more cards than available
+
+	// Assert
 	if ok {
 		t.Error("Expected drawing more cards than available to return false")
 	}

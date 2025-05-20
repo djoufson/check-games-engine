@@ -8,24 +8,32 @@ import (
 	"github.com/djoufson/check-games-engine/deck"
 )
 
-// TestDeckShuffle tests the shuffling behavior of the deck
-func TestDeckShuffle(t *testing.T) {
+// TestShouldHaveIdenticalCardOrder_WhenCreatingTwoNewDecks verifies that new decks have identical card orders
+func TestShouldHaveIdenticalCardOrder_WhenCreatingTwoNewDecks(t *testing.T) {
+	// Arrange
 	deck1 := deck.New()
 	deck2 := deck.New()
 
-	// Before shuffling, the decks should be identical
+	// Act & Assert
 	for i := range deck1.Cards {
 		if deck1.Cards[i].Suit != deck2.Cards[i].Suit || deck1.Cards[i].Rank != deck2.Cards[i].Rank {
 			t.Errorf("Decks are not identical before shuffling at index %d", i)
 		}
 	}
+}
 
-	// Shuffle one deck
+// TestShouldChangeCardOrder_WhenShufflingDeck verifies that shuffling changes card order
+func TestShouldChangeCardOrder_WhenShufflingDeck(t *testing.T) {
+	// Arrange
+	deck1 := deck.New()
+	deck2 := deck.New()
+
+	// Act
 	source := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(source)
 	deck1.Shuffle(r)
 
-	// Decks should now be different (this could theoretically fail, but probability is extremely low)
+	// Assert - Decks should now be different (this could theoretically fail, but probability is extremely low)
 	identical := true
 	for i := range deck1.Cards {
 		if deck1.Cards[i].Suit != deck2.Cards[i].Suit || deck1.Cards[i].Rank != deck2.Cards[i].Rank {
