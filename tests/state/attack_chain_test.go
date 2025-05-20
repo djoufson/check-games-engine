@@ -29,16 +29,16 @@ func setupAttackChainTest() (*state.State, *player.Player, *player.Player) {
 	topCard := card.NewCard(card.Hearts, card.Queen)
 
 	gameState := &state.State{
-		Players:            []*player.Player{player1, player2},
-		ActivePlayers:      []string{"player1", "player2"},
-		CurrentPlayerIndex: 0,
-		Direction:          state.Clockwise,
-		DrawPile:           drawPile,
-		DiscardPile:        []card.Card{topCard},
-		TopCard:            topCard,
-		InAttackChain:      false,
-		AttackAmount:       0,
-		LastActiveSuit:     card.Hearts,
+		Players:         []*player.Player{player1, player2},
+		ActivePlayers:   []string{player1.ID, player2.ID},
+		CurrentPlayerId: player1.ID,
+		Direction:       state.Clockwise,
+		DrawPile:        drawPile,
+		DiscardPile:     []card.Card{topCard},
+		TopCard:         topCard,
+		InAttackChain:   false,
+		AttackAmount:    0,
+		LastActiveSuit:  card.Hearts,
 	}
 
 	return gameState, player1, player2

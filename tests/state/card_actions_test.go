@@ -26,16 +26,16 @@ func setupCardPlayTest() (*state.State, *player.Player, *player.Player) {
 
 	// Create a state with known top card
 	gameState := &state.State{
-		Players:            []*player.Player{player1, player2},
-		ActivePlayers:      []string{"player1", "player2"},
-		CurrentPlayerIndex: 0,
-		Direction:          state.Clockwise,
-		DrawPile:           nil, // We won't be drawing in this test
-		DiscardPile:        []card.Card{card.NewCard(card.Spades, card.Queen)},
-		TopCard:            card.NewCard(card.Spades, card.Queen),
-		InAttackChain:      false,
-		AttackAmount:       0,
-		LastActiveSuit:     card.Spades,
+		Players:         []*player.Player{player1, player2},
+		ActivePlayers:   []string{player1.ID, player2.ID},
+		CurrentPlayerId: player1.ID,
+		Direction:       state.Clockwise,
+		DrawPile:        nil, // We won't be drawing in this test
+		DiscardPile:     []card.Card{card.NewCard(card.Spades, card.Queen)},
+		TopCard:         card.NewCard(card.Spades, card.Queen),
+		InAttackChain:   false,
+		AttackAmount:    0,
+		LastActiveSuit:  card.Spades,
 	}
 
 	return gameState, player1, player2
@@ -54,16 +54,16 @@ func setupCardDrawingTest() (*state.State, *player.Player, *player.Player) {
 	topCard, _ := drawPile.Draw()
 
 	gameState := &state.State{
-		Players:            []*player.Player{player1, player2},
-		ActivePlayers:      []string{"player1", "player2"},
-		CurrentPlayerIndex: 0,
-		Direction:          state.Clockwise,
-		DrawPile:           drawPile,
-		DiscardPile:        []card.Card{topCard},
-		TopCard:            topCard,
-		InAttackChain:      false,
-		AttackAmount:       0,
-		LastActiveSuit:     topCard.Suit,
+		Players:         []*player.Player{player1, player2},
+		ActivePlayers:   []string{player1.ID, player2.ID},
+		CurrentPlayerId: player1.ID,
+		Direction:       state.Clockwise,
+		DrawPile:        drawPile,
+		DiscardPile:     []card.Card{topCard},
+		TopCard:         topCard,
+		InAttackChain:   false,
+		AttackAmount:    0,
+		LastActiveSuit:  topCard.Suit,
 	}
 
 	return gameState, player1, player2

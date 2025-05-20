@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math/rand"
+	"slices"
 
 	"github.com/djoufson/check-games-engine/card"
 	"github.com/djoufson/check-games-engine/deck"
@@ -23,17 +24,17 @@ const (
 
 // State represents the current state of a game
 type State struct {
-	Players            []*player.Player `json:"players"`
-	ActivePlayers      []string         `json:"active_players"` // IDs of players still in the game
-	CurrentPlayerIndex int              `json:"current_player_index"`
-	Direction          Direction        `json:"direction"`
-	DrawPile           *deck.Deck       `json:"draw_pile"`
-	DiscardPile        []card.Card      `json:"discard_pile"`
-	TopCard            card.Card        `json:"top_card"`
-	InAttackChain      bool             `json:"in_attack_chain"`
-	AttackAmount       int              `json:"attack_amount"`
-	LastActiveSuit     card.Suit        `json:"last_active_suit"` // For Jack's suit change effect
-	LockedTurn         bool             `json:"blocked_turn"`     // If the turn is blocked until the suit is changed
+	Players         []*player.Player `json:"players"`
+	ActivePlayers   []string         `json:"active_players"` // IDs of players still in the game
+	CurrentPlayerId string           `json:"current_player_id"`
+	Direction       Direction        `json:"direction"`
+	DrawPile        *deck.Deck       `json:"draw_pile"`
+	DiscardPile     []card.Card      `json:"discard_pile"`
+	TopCard         card.Card        `json:"top_card"`
+	InAttackChain   bool             `json:"in_attack_chain"`
+	AttackAmount    int              `json:"attack_amount"`
+	LastActiveSuit  card.Suit        `json:"last_active_suit"` // For Jack's suit change effect
+	LockedTurn      bool             `json:"blocked_turn"`     // If the turn is blocked until the suit is changed
 }
 
 // GameOptions defines configurable options for a new game
@@ -114,16 +115,16 @@ func New(playerIDs []string, options *GameOptions) (*State, error) {
 
 	// Create the initial game state
 	state := &State{
-		Players:            players,
-		ActivePlayers:      activePlayerIDs,
-		CurrentPlayerIndex: 0,
-		Direction:          Clockwise,
-		DrawPile:           drawPile,
-		DiscardPile:        discardPile,
-		TopCard:            topCard,
-		InAttackChain:      false,
-		AttackAmount:       0,
-		LastActiveSuit:     topCard.Suit,
+		Players:         players,
+		ActivePlayers:   activePlayerIDs,
+		CurrentPlayerId: activePlayerIDs[0],
+		Direction:       Clockwise,
+		DrawPile:        drawPile,
+		DiscardPile:     discardPile,
+		TopCard:         topCard,
+		InAttackChain:   false,
+		AttackAmount:    0,
+		LastActiveSuit:  topCard.Suit,
 	}
 
 	return state, nil
@@ -156,16 +157,16 @@ func (s *State) Clone() *State {
 
 	// Create the cloned state
 	clone := &State{
-		Players:            players,
-		ActivePlayers:      activePlayerIDs,
-		CurrentPlayerIndex: s.CurrentPlayerIndex,
-		Direction:          s.Direction,
-		DrawPile:           drawPile,
-		DiscardPile:        discardPile,
-		TopCard:            s.TopCard,
-		InAttackChain:      s.InAttackChain,
-		AttackAmount:       s.AttackAmount,
-		LastActiveSuit:     s.LastActiveSuit,
+		Players:         players,
+		ActivePlayers:   activePlayerIDs,
+		CurrentPlayerId: s.CurrentPlayerId,
+		Direction:       s.Direction,
+		DrawPile:        drawPile,
+		DiscardPile:     discardPile,
+		TopCard:         s.TopCard,
+		InAttackChain:   s.InAttackChain,
+		AttackAmount:    s.AttackAmount,
+		LastActiveSuit:  s.LastActiveSuit,
 	}
 
 	return clone
@@ -173,7 +174,7 @@ func (s *State) Clone() *State {
 
 // CurrentPlayerID returns the ID of the player whose turn it is
 func (s *State) CurrentPlayerID() string {
-	return s.ActivePlayers[s.CurrentPlayerIndex]
+	return s.CurrentPlayerId
 }
 
 // CurrentPlayer returns the player whose turn it is
@@ -194,7 +195,7 @@ func (s *State) NextPlayerIndex() int {
 		return 0 // Only one player left
 	}
 
-	nextIdx := s.CurrentPlayerIndex
+	nextIdx := slices.Index(s.ActivePlayers, s.CurrentPlayerId)
 	if s.Direction == Clockwise {
 		nextIdx = (nextIdx + 1) % numActivePlayers
 	} else {
@@ -228,7 +229,7 @@ func (s *State) AdvanceTurn() {
 		return
 	}
 
-	s.CurrentPlayerIndex = s.NextPlayerIndex()
+	s.CurrentPlayerId = s.ActivePlayers[s.NextPlayerIndex()]
 }
 
 // SkipNextPlayer skips the next player's turn (used for Ace)
@@ -268,18 +269,18 @@ func (s *State) RemovePlayerFromActive(playerID string) {
 	for i, id := range s.ActivePlayers {
 		if id == playerID {
 			// Remove this player from active players
-			s.ActivePlayers = append(s.ActivePlayers[:i], s.ActivePlayers[i+1:]...)
+			s.ActivePlayers = slices.Delete(s.ActivePlayers, i, i+1)
 
 			// If the removed player was before the current player, adjust the index
-			if i < s.CurrentPlayerIndex {
-				s.CurrentPlayerIndex--
-			}
+			// if i < s.CurrentPlayerId {
+			// 	s.CurrentPlayerId--
+			// }
 
 			// If the removed player was the current player, don't change the index
 			// (the next player will be at the same index position)
-			if i == s.CurrentPlayerIndex && s.CurrentPlayerIndex >= len(s.ActivePlayers) {
-				s.CurrentPlayerIndex = 0
-			}
+			// if i == s.CurrentPlayerId && s.CurrentPlayerId >= len(s.ActivePlayers) {
+			// 	s.CurrentPlayerId = 0
+			// }
 
 			return
 		}
@@ -346,13 +347,13 @@ func (s *State) PlayCard(playerID string, c card.Card) error {
 		}
 	}
 
+	// Process special card effects
+	s.ProcessCardEffect(c)
+
 	// Check if the player has emptied their hand
 	if p.HasEmptyHand() {
 		s.RemovePlayerFromActive(playerID)
 	}
-
-	// Process special card effects
-	s.ProcessCardEffect(c)
 
 	return nil
 }
@@ -483,6 +484,10 @@ func (s *State) ChangeSuit(playerID string, newSuit card.Suit) error {
 		return errors.New("turn is not locked")
 	}
 
+	if !isValidSuit(newSuit) {
+		return errors.New("invalid suit")
+	}
+
 	// Verify that the last card played was a Jack
 	if !s.TopCard.IsSuitChanger() {
 		return errors.New("suit can only be changed after playing a Jack")
@@ -494,6 +499,10 @@ func (s *State) ChangeSuit(playerID string, newSuit card.Suit) error {
 	s.AdvanceTurn()
 
 	return nil
+}
+
+func isValidSuit(newSuit card.Suit) bool {
+	return newSuit == card.Hearts || newSuit == card.Diamonds || newSuit == card.Spades || newSuit == card.Clubs
 }
 
 // IsGameOver checks if the game is over

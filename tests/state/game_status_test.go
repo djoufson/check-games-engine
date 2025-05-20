@@ -20,16 +20,16 @@ func setupGameOverTest() (*state.State, *player.Player, *player.Player) {
 	})
 
 	gameState := &state.State{
-		Players:            []*player.Player{player1, player2},
-		ActivePlayers:      []string{"player2"}, // Only player2 is active
-		CurrentPlayerIndex: 0,
-		Direction:          state.Clockwise,
-		DrawPile:           nil,
-		DiscardPile:        []card.Card{card.NewCard(card.Hearts, card.King)},
-		TopCard:            card.NewCard(card.Hearts, card.King),
-		InAttackChain:      false,
-		AttackAmount:       0,
-		LastActiveSuit:     card.Hearts,
+		Players:         []*player.Player{player1, player2},
+		ActivePlayers:   []string{player2.ID}, // Only player2 is active
+		CurrentPlayerId: player1.ID,
+		Direction:       state.Clockwise,
+		DrawPile:        nil,
+		DiscardPile:     []card.Card{card.NewCard(card.Hearts, card.King)},
+		TopCard:         card.NewCard(card.Hearts, card.King),
+		InAttackChain:   false,
+		AttackAmount:    0,
+		LastActiveSuit:  card.Hearts,
 	}
 
 	return gameState, player1, player2

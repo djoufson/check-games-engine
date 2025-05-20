@@ -35,16 +35,16 @@ func TestSpecialCardEffects(t *testing.T) {
 
 	// Create a state with these players and specific top card
 	stateObj := &state.State{
-		Players:            []*player.Player{player1, player2},
-		ActivePlayers:      []string{player1.ID, player2.ID},
-		CurrentPlayerIndex: 0,
-		Direction:          state.Clockwise,
-		DrawPile:           deck.New(), // Standard deck
-		DiscardPile:        []card.Card{card.NewCard(card.Spades, card.Queen)},
-		TopCard:            card.NewCard(card.Spades, card.Queen),
-		InAttackChain:      false,
-		AttackAmount:       0,
-		LastActiveSuit:     card.Spades,
+		Players:         []*player.Player{player1, player2},
+		ActivePlayers:   []string{player1.ID, player2.ID},
+		CurrentPlayerId: player1.ID,
+		Direction:       state.Clockwise,
+		DrawPile:        deck.New(), // Standard deck
+		DiscardPile:     []card.Card{card.NewCard(card.Spades, card.Queen)},
+		TopCard:         card.NewCard(card.Spades, card.Queen),
+		InAttackChain:   false,
+		AttackAmount:    0,
+		LastActiveSuit:  card.Spades,
 	}
 
 	// Initialize a game from this state
