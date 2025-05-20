@@ -3,9 +3,9 @@ package state
 import (
 	"testing"
 
-	"github.com/check-games/engine/card"
-	"github.com/check-games/engine/deck"
-	"github.com/check-games/engine/player"
+	"github.com/djoufson/check-games-engine/card"
+	"github.com/djoufson/check-games-engine/deck"
+	"github.com/djoufson/check-games-engine/player"
 )
 
 func TestNewGame(t *testing.T) {

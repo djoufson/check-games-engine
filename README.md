@@ -44,7 +44,7 @@ game-engine/
 ### Basic Usage
 
 ```go
-import "github.com/check-games/engine/game"
+import "github.com/djoufson/check-games-engine/game"
 
 // Create a new game with 3 players
 gameState, err := game.NewGame([]string{"player1", "player2", "player3"}, nil)

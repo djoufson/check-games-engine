@@ -3,7 +3,7 @@ package player
 import (
 	"testing"
 
-	"github.com/check-games/engine/card"
+	"github.com/djoufson/check-games-engine/card"
 )
 
 func TestNew(t *testing.T) {
@@ -195,7 +195,7 @@ func TestGetPlayableCards(t *testing.T) {
 	// Test which cards are playable on Queen of Spades
 	topCard := card.NewCard(card.Spades, card.Queen)
 	playable := p.GetPlayableCards(topCard, false)
-	
+
 	// Playable cards should be:
 	// 1. Ace of Spades (same suit)
 	// 2. Two of Clubs (transparent)
@@ -207,7 +207,7 @@ func TestGetPlayableCards(t *testing.T) {
 	// Test during attack chain
 	topCard = card.NewCard(card.Diamonds, card.Seven) // Wild Card
 	playable = p.GetPlayableCards(topCard, true)
-	
+
 	// Playable cards should be:
 	// 1. Seven of Diamonds
 	// 2. Red Joker
@@ -249,4 +249,4 @@ func TestHasMatchingCard(t *testing.T) {
 	if p.HasMatchingCard(card.NewCard(card.Diamonds, card.Queen), false) {
 		t.Error("Expected player not to have a matching card")
 	}
-} 
+}

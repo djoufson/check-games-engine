@@ -2,7 +2,7 @@
 package player
 
 import (
-	"github.com/check-games/engine/card"
+	"github.com/djoufson/check-games-engine/card"
 )
 
 // Player represents a player in the game

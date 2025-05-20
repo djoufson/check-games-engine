@@ -1,3 +1,3 @@
-module github.com/check-games/engine
+module github.com/djoufson/check-games-engine
 
 go 1.22

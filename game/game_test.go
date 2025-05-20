@@ -3,10 +3,10 @@ package game
 import (
 	"testing"
 
-	"github.com/check-games/engine/card"
-	"github.com/check-games/engine/deck"
-	"github.com/check-games/engine/player"
-	"github.com/check-games/engine/state"
+	"github.com/djoufson/check-games-engine/card"
+	"github.com/djoufson/check-games-engine/deck"
+	"github.com/djoufson/check-games-engine/player"
+	"github.com/djoufson/check-games-engine/state"
 )
 
 func TestNewGame(t *testing.T) {

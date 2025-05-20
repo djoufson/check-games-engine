@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/check-games/engine/card"
+	"github.com/djoufson/check-games-engine/card"
 )
 
 func TestNewDeck(t *testing.T) {

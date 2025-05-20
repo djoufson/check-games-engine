@@ -4,7 +4,7 @@ package deck
 import (
 	"math/rand"
 
-	"github.com/check-games/engine/card"
+	"github.com/djoufson/check-games-engine/card"
 )
 
 // Deck represents a deck of cards
@@ -90,4 +90,4 @@ func (d *Deck) Count() int {
 // IsEmpty returns true if the deck has no cards
 func (d *Deck) IsEmpty() bool {
 	return len(d.Cards) == 0
-} 
+}

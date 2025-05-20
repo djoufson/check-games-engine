@@ -6,9 +6,9 @@ import (
 	"errors"
 	"math/rand"
 
-	"github.com/check-games/engine/card"
-	"github.com/check-games/engine/deck"
-	"github.com/check-games/engine/player"
+	"github.com/djoufson/check-games-engine/card"
+	"github.com/djoufson/check-games-engine/deck"
+	"github.com/djoufson/check-games-engine/player"
 )
 
 // Direction represents the direction of play

@@ -4,9 +4,9 @@ package game
 import (
 	"errors"
 
-	"github.com/check-games/engine/card"
-	"github.com/check-games/engine/player"
-	"github.com/check-games/engine/state"
+	"github.com/djoufson/check-games-engine/card"
+	"github.com/djoufson/check-games-engine/player"
+	"github.com/djoufson/check-games-engine/state"
 )
 
 // Game represents a check-game
@@ -97,11 +97,11 @@ func (g *Game) GetPlayerHand(playerID string) ([]card.Card, error) {
 	if player == nil {
 		return nil, errors.New("player not found")
 	}
-	
+
 	// Return a copy of the hand to prevent modification
 	hand := make([]card.Card, len(player.Hand))
 	copy(hand, player.Hand)
-	
+
 	return hand, nil
 }
 
@@ -110,12 +110,12 @@ func (g *Game) GetPlayableCards(playerID string) ([]card.Card, error) {
 	if !g.IsPlayerTurn(playerID) {
 		return nil, errors.New("not player's turn")
 	}
-	
+
 	player := g.state.FindPlayerByID(playerID)
 	if player == nil {
 		return nil, errors.New("player not found")
 	}
-	
+
 	return player.GetPlayableCards(g.state.TopCard, g.state.InAttackChain), nil
 }
 
@@ -170,22 +170,22 @@ func (g *Game) ValidateMove(playerID string, c card.Card) (bool, error) {
 	if !g.IsPlayerTurn(playerID) {
 		return false, errors.New("not player's turn")
 	}
-	
+
 	// Find the player
 	p := g.state.FindPlayerByID(playerID)
 	if p == nil {
 		return false, errors.New("player not found")
 	}
-	
+
 	// Check if the player has the card
 	if !p.HasCard(c) {
 		return false, errors.New("card not in hand")
 	}
-	
+
 	// Check if the play is valid according to game rules
 	if !player.CanPlayCardOn(c, g.state.TopCard, g.state.InAttackChain) {
 		return false, errors.New("invalid move")
 	}
-	
+
 	return true, nil
-} 
+}
