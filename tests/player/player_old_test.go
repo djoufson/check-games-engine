@@ -1,13 +1,14 @@
-package player
+package player_test
 
 import (
 	"testing"
 
 	"github.com/djoufson/check-games-engine/card"
+	"github.com/djoufson/check-games-engine/player"
 )
 
 func TestNew(t *testing.T) {
-	p := New("player1")
+	p := player.New("player1")
 	if p.ID != "player1" {
 		t.Errorf("Expected ID to be 'player1', got '%s'", p.ID)
 	}
@@ -17,7 +18,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestAddToHand(t *testing.T) {
-	p := New("player1")
+	p := player.New("player1")
 	c := card.NewCard(card.Spades, card.Ace)
 
 	p.AddToHand(c)
@@ -30,7 +31,7 @@ func TestAddToHand(t *testing.T) {
 }
 
 func TestAddCardsToHand(t *testing.T) {
-	p := New("player1")
+	p := player.New("player1")
 	cards := []card.Card{
 		card.NewCard(card.Spades, card.Ace),
 		card.NewCard(card.Hearts, card.King),
@@ -43,7 +44,7 @@ func TestAddCardsToHand(t *testing.T) {
 }
 
 func TestRemoveFromHand(t *testing.T) {
-	p := New("player1")
+	p := player.New("player1")
 	aceSpades := card.NewCard(card.Spades, card.Ace)
 	kingHearts := card.NewCard(card.Hearts, card.King)
 
@@ -69,7 +70,7 @@ func TestRemoveFromHand(t *testing.T) {
 }
 
 func TestHasCard(t *testing.T) {
-	p := New("player1")
+	p := player.New("player1")
 	aceSpades := card.NewCard(card.Spades, card.Ace)
 	kingHearts := card.NewCard(card.Hearts, card.King)
 
@@ -173,7 +174,7 @@ func TestCanPlayCardOn(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := CanPlayCardOn(tt.playedCard, tt.topCard, tt.inAttackChain)
+			result := player.CanPlayCardOn(tt.playedCard, tt.topCard, tt.inAttackChain)
 			if result != tt.expected {
 				t.Errorf("CanPlayCardOn() = %v, want %v", result, tt.expected)
 			}
@@ -182,7 +183,7 @@ func TestCanPlayCardOn(t *testing.T) {
 }
 
 func TestGetPlayableCards(t *testing.T) {
-	p := New("player1")
+	p := player.New("player1")
 	// Add some cards to hand
 	p.AddCardsToHand([]card.Card{
 		card.NewCard(card.Spades, card.Ace),
@@ -217,7 +218,7 @@ func TestGetPlayableCards(t *testing.T) {
 }
 
 func TestHasEmptyHand(t *testing.T) {
-	p := New("player1")
+	p := player.New("player1")
 	if !p.HasEmptyHand() {
 		t.Error("Expected new player to have empty hand")
 	}
@@ -229,7 +230,7 @@ func TestHasEmptyHand(t *testing.T) {
 }
 
 func TestHasMatchingCard(t *testing.T) {
-	p := New("player1")
+	p := player.New("player1")
 	p.AddCardsToHand([]card.Card{
 		card.NewCard(card.Spades, card.Ace),
 		card.NewCard(card.Hearts, card.King),
